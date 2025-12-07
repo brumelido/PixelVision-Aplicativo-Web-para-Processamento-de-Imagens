@@ -3,41 +3,62 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aplicativo de Filtros de Imagem</title>
+  <title>PixelVision | Filtros de Imagem</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Aplicativo de Filtros de Imagem</h1>
 
-  <div class="controles">
-    <label for="carregarImagem">Carregar imagem:</label>
-    <input type="file" id="carregarImagem" accept="image/*">
+  <main class="container">
+    <header>
+      <h1>PixelVision</h1>
+      <p>Processamento de imagens via Web</p>
+    </header>
 
-    <label for="tamanhoKernel">Tamanho do Kernel:</label>
-    <select id="tamanhoKernel">
-      <option value="3">3 x 3</option>
-      <option value="5">5 x 5</option>
-      <option value="7">7 x 7</option>
-    </select>
+    <div class="card controles">
+      <div class="grupo-input">
+        <label for="carregarImagem" class="upload-btn">
+          📂 Carregar Imagem
+          <input type="file" id="carregarImagem" accept="image/*">
+        </label>
+        
+        <div class="select-wrapper">
+          <label for="tamanhoKernel">Kernel:</label>
+          <select id="tamanhoKernel">
+            <option value="3">3 x 3</option>
+            <option value="5">5 x 5</option>
+            <option value="7">7 x 7</option>
+          </select>
+        </div>
+      </div>
 
-    <button id="btnReset">Restaurar Original</button>
-    <button id="btnMedia">Filtro de Média</button>
-    <button id="btnMediana">Filtro de Mediana</button>
-    <button id="btnMaximo">Filtro de Máximo</button>
-    <button id="btnSobel">Detecção de Bordas (Sobel)</button>
-  </div>
-
-  <div class="painel">
-    <div class="canvas-area">
-      <span>Imagem Original</span>
-      <canvas id="canvasOriginal"></canvas>
+      <div class="grupo-botoes">
+        <button id="btnMedia" class="btn-filter">Média</button>
+        <button id="btnMediana" class="btn-filter">Mediana</button>
+        <button id="btnMaximo" class="btn-filter">Máximo</button>
+        <button id="btnSobel" class="btn-filter">Bordas (Sobel)</button>
+        <button id="btnReset" class="btn-reset">↺ Restaurar</button>
+      </div>
     </div>
 
-    <div class="canvas-area">
-      <span>Imagem Processada</span>
-      <canvas id="canvasProcessada"></canvas>
+    <div class="painel">
+      <div class="canvas-area">
+        <span class="label-canvas">Original</span>
+        <div class="canvas-wrapper">
+          <canvas id="canvasOriginal"></canvas>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <span class="label-canvas">Processada</span>
+        <div class="canvas-wrapper">
+          <canvas id="canvasProcessada"></canvas>
+        </div>
+      </div>
     </div>
-  </div>
+  </main>
 
   <script src="main.js"></script>
 </body>

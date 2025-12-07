@@ -1,69 +1,213 @@
-body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
-  background: #f5f5f5;
+:root {
+  --bg-color: #121212;
+  --card-bg: #1e1e1e;
+  --text-color: #e0e0e0;
+  --primary: #bb86fc;
+  --primary-hover: #9955e8;
+  --secondary: #03dac6;
+  --danger: #cf6679;
+  --border-radius: 12px;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
-h1 {
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+header {
   text-align: center;
   margin-bottom: 10px;
 }
 
+header h1 {
+  font-weight: 600;
+  color: var(--primary);
+  letter-spacing: 1px;
+}
+
+header p {
+  font-size: 0.9rem;
+  color: #a0a0a0;
+}
+
+/* Card Genérico */
+.card {
+  background-color: var(--card-bg);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+
+/* Controles */
 .controles {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .controles {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.grupo-input {
+  display: flex;
+  gap: 15px;
   align-items: center;
-  margin-bottom: 20px;
-  background: #ffffff;
+  flex-wrap: wrap;
+}
+
+/* Estilizando o input file "escondido" */
+input[type="file"] {
+  display: none;
+}
+
+.upload-btn {
+  background-color: #333;
+  color: #fff;
   padding: 10px 15px;
   border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-}
-
-.controles label {
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.controles button {
-  padding: 6px 10px;
-  font-size: 14px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
   cursor: pointer;
-  background: #ffffff;
-  transition: background 0.2s, transform 0.05s;
+  border: 1px solid #444;
+  transition: all 0.3s;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
-.controles button:hover {
-  background: #e6e6e6;
+.upload-btn:hover {
+  background-color: #444;
+  border-color: var(--primary);
 }
 
-.painel {
+.select-wrapper label {
+  margin-right: 5px;
+  font-weight: 500;
+  color: #ccc;
+}
+
+select {
+  background: #333;
+  color: #fff;
+  border: 1px solid #444;
+  padding: 8px;
+  border-radius: 6px;
+  outline: none;
+}
+
+/* Botões de Filtro */
+.grupo-botoes {
   display: flex;
-  gap: 20px;
+  gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
 }
 
+button {
+  border: none;
+  padding: 10px 16px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.3s;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+.btn-filter {
+  background-color: var(--primary);
+  color: #121212; /* Texto escuro para contraste no roxo */
+}
+
+.btn-filter:hover {
+  background-color: var(--primary-hover);
+  box-shadow: 0 0 10px rgba(187, 134, 252, 0.4);
+}
+
+.btn-reset {
+  background-color: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.btn-reset:hover {
+  background-color: var(--danger);
+  color: white;
+}
+
+/* Painel de Imagens */
+.painel {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .painel {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .canvas-area {
+  background-color: var(--card-bg);
+  padding: 15px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: #ffffff;
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
-.canvas-area span {
-  margin-bottom: 5px;
-  font-weight: bold;
+.label-canvas {
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #888;
+}
+
+.canvas-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  background-color: #121212; /* Fundo preto onde a imagem fica */
+  border-radius: 8px;
+  border: 1px dashed #333;
+  overflow: hidden;
 }
 
 canvas {
-  border: 1px solid #ccc;
-  max-width: 400px;
-  max-height: 400px;
+  max-width: 100%;
+  height: auto;
+  display: block;
 }
