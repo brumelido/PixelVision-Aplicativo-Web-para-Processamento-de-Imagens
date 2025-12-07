@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Aplicativo de Filtros de Imagem</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .controles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 20px;
+      background: #ffffff;
+      padding: 10px 15px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    .controles label {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .controles button {
+      padding: 6px 10px;
+      font-size: 14px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      background: #ffffff;
+      transition: background 0.2s, transform 0.05s;
+    }
+
+    .controles button:hover {
+      background: #e6e6e6;
+    }
+
+    .painel {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .canvas-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #ffffff;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    .canvas-area span {
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    canvas {
+      border: 1px solid #ccc;
+      max-width: 400px;
+      max-height: 400px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Aplicativo de Filtros de Imagem</h1>
+
+  <div class="controles">
+    <label for="carregarImagem">Carregar imagem:</label>
+    <input type="file" id="carregarImagem" accept="image/*">
+
+    <label for="tamanhoKernel">Tamanho do Kernel:</label>
+    <select id="tamanhoKernel">
+      <option value="3">3 x 3</option>
+      <option value="5">5 x 5</option>
+      <option value="7">7 x 7</option>
+    </select>
+
+    <button id="btnReset">Restaurar Original</button>
+    <button id="btnMedia">Filtro de Média</button>
+    <button id="btnMediana">Filtro de Mediana</button>
+    <button id="btnMaximo">Filtro de Máximo</button>
+    <button id="btnSobel">Detecção de Bordas (Sobel)</button>
+  </div>
+
+  <div class="painel">
+    <div class="canvas-area">
+      <span>Imagem Original</span>
+      <canvas id="canvasOriginal"></canvas>
+    </div>
+
+    <div class="canvas-area">
+      <span>Imagem Processada</span>
+      <canvas id="canvasProcessada"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const inputImagem = document.getElementById('carregarImagem');
+    const canvasOriginal = document.getElementById('canvasOriginal');
+    const canvasProcessada = document.getElementById('canvasProcessada');
+    const ctxOriginal = canvasOriginal.getContext('2d');
+    const ctxProcessado = canvasProcessada.getContext('2d');
+
+    const selectKernel = document.getElementById('tamanhoKernel');
+
+    const btnReset = document.getElementById('btnReset');
+    const btnMedia = document.getElementById('btnMedia');
+    const btnMediana = document.getElementById('btnMediana');
+    const btnMaximo = document.getElementById('btnMaximo');
+    const btnSobel = document.getElementById('btnSobel');
+
+    let imagemOriginal = null;
+    let imagemProcessada = null;
+
+    // Carregar imagem
+    inputImagem.addEventListener('change', function(e) {
+      const arquivo = e.target.files[0];
+      if (!arquivo) return;
+
+      const leitor = new FileReader();
+      leitor.onload = function(evento) {
+        const img = new Image();
+        img.onload = function () {
+          canvasOriginal.width = img.width;
+          canvasOriginal.height = img.height;
+          canvasProcessada.width = img.width;
+          canvasProcessada.height = img.height;
+
+          ctxOriginal.drawImage(img, 0, 0);
+          ctxProcessado.drawImage(img, 0, 0);
+
+          imagemOriginal = ctxOriginal.getImageData(0, 0, img.width, img.height);
+          imagemProcessada = new ImageData(
+            new Uint8ClampedArray(imagemOriginal.data),
+            imagemOriginal.width,
+            imagemOriginal.height
+          );
+        };
+        img.src = evento.target.result;
+      };
+
+      leitor.readAsDataURL(arquivo);
+    });
+
+    function checarImagem() {
+      if (!imagemOriginal) {
+        alert("Por favor, carregue uma imagem primeiro.");
+        return false;
+      }
+      return true;
+    }
+
+    function atualizarCanvas() {
+      ctxProcessado.putImageData(imagemProcessada, 0, 0);
+    }
+
+    btnReset.addEventListener('click', function() {
+      if (!checarImagem()) return;
+      imagemProcessada = new ImageData(
+        new Uint8ClampedArray(imagemOriginal.data),
+        imagemOriginal.width,
+        imagemOriginal.height
+      );
+      atualizarCanvas();
+    });
+
+    // ---- Filtros ---- //
+
+    function filtroMedia(input, k) {
+      const { width, height, data } = input;
+      const output = new ImageData(width, height);
+      const out = output.data;
+      const half = Math.floor(k / 2);
+
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          let somaR = 0, somaG = 0, somaB = 0, count = 0;
+
+          for (let dy = -half; dy <= half; dy++) {
+            for (let dx = -half; dx <= half; dx++) {
+              const ny = clamp(y + dy, 0, height - 1);
+              const nx = clamp(x + dx, 0, width - 1);
+              const idx = (ny * width + nx) * 4;
+
+              somaR += data[idx];
+              somaG += data[idx + 1];
+              somaB += data[idx + 2];
+              count++;
+            }
+          }
+
+          const idx = (y * width + x) * 4;
+          out[idx]     = somaR / count;
+          out[idx + 1] = somaG / count;
+          out[idx + 2] = somaB / count;
+          out[idx + 3] = data[idx + 3];
+        }
+      }
+
+      return output;
+    }
+
+    function filtroMediana(input, k) {
+      const { width, height, data } = input;
+      const output = new ImageData(width, height);
+      const out = output.data;
+      const half = Math.floor(k / 2);
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const janelaR = [], janelaG = [], janelaB = [];
+
+          for (let dy = -half; dy <= half; dy++) {
+            for (let dx = -half; dx <= half; dx++) {
+              const ny = clamp(y + dy, 0, height - 1);
+              const nx = clamp(x + dx, 0, width - 1);
+              const idx = (ny * width + nx) * 4;
+
+              janelaR.push(data[idx]);
+              janelaG.push(data[idx + 1]);
+              janelaB.push(data[idx + 2]);
+            }
+          }
+
+          janelaR.sort((a, b) => a - b);
+          janelaG.sort((a, b) => a - b);
+          janelaB.sort((a, b) => a - b);
+
+          const meio = Math.floor(janelaR.length / 2);
+          const idx = (y * width + x) * 4;
+
+          out[idx]     = janelaR[meio];
+          out[idx + 1] = janelaG[meio];
+          out[idx + 2] = janelaB[meio];
+          out[idx + 3] = data[idx + 3];
+        }
+      }
+      return output;
+    }
+
+    function filtroMaximo(input, k) {
+      const { width, height, data } = input;
+      const output = new ImageData(width, height);
+      const out = output.data;
+      const half = Math.floor(k / 2);
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          let maxR = 0, maxG = 0, maxB = 0;
+
+          for (let dy = -half; dy <= half; dy++) {
+            for (let dx = -half; dx <= half; dx++) {
+              const ny = clamp(y + dy, 0, height - 1);
+              const nx = clamp(x + dx, 0, width - 1);
+              const idx = (ny * width + nx) * 4;
+
+              if (data[idx] > maxR) maxR = data[idx];
+              if (data[idx + 1] > maxG) maxG = data[idx + 1];
+              if (data[idx + 2] > maxB) maxB = data[idx + 2];
+            }
+          }
+
+          const idx = (y * width + x) * 4;
+          out[idx]     = maxR;
+          out[idx + 1] = maxG;
+          out[idx + 2] = maxB;
+          out[idx + 3] = data[idx + 3];
+        }
+      }
+      return output;
+    }
+
+    function filtroSobel(input) {
+      const { width, height, data } = input;
+      const output = new ImageData(width, height);
+      const out = output.data;
+
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+      const Gx = [-1,0,1,-2,0,2,-1,0,1];
+      const Gy = [-1,-2,-1,0,0,0,1,2,1];
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          let somaX = 0, somaY = 0;
+
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              const ny = clamp(y + dy, 0, height-1);
+              const nx = clamp(x + dx, 0, width-1);
+              const idx = (ny * width + nx) * 4;
+
+              const r = data[idx];
+              const g = data[idx+1];
+              const b = data[idx+2];
+              const cinza = 0.299*r + 0.587*g + 0.114*b;
+
+              const k = (dy+1)*3 + (dx+1);
+              somaX += cinza * Gx[k];
+              somaY += cinza * Gy[k];
+            }
+          }
+
+          const mag = Math.sqrt(somaX*somaX + somaY*somaY);
+          const val = clamp(mag, 0, 255);
+
+          const idx = (y * width + x) * 4;
+          out[idx] = out[idx+1] = out[idx+2] = val;
+          out[idx+3] = 255;
+        }
+      }
+      return output;
+    }
+
+    // Botões
+    btnMedia.addEventListener('click', () => {
+      if (!checarImagem()) return;
+      imagemProcessada = filtroMedia(imagemProcessada, parseInt(selectKernel.value));
+      atualizarCanvas();
+    });
+
+    btnMediana.addEventListener('click', () => {
+      if (!checarImagem()) return;
+      imagemProcessada = filtroMediana(imagemProcessada, parseInt(selectKernel.value));
+      atualizarCanvas();
+    });
+
+    btnMaximo.addEventListener('click', () => {
+      if (!checarImagem()) return;
+      imagemProcessada = filtroMaximo(imagemProcessada, parseInt(selectKernel.value));
+      atualizarCanvas();
+    });
+
+    btnSobel.addEventListener('click', () => {
+      if (!checarImagem()) return;
+      imagemProcessada = filtroSobel(imagemProcessada);
+      atualizarCanvas();
+    });
+  </script>
+</body>
+</html>
